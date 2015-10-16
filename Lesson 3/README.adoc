@@ -1,0 +1,10 @@
+= Lesson 3: Advanced Lambda and Stream Concepts
+
+In lesson 3 you will learn advance stream concepts like reduction and collection. You will learn to:
+ 
+Perform a reduction using streams.
+Create and use finite and infinite streams in Java.
+Avoid the use of forEach.
+Save items from from a stream using the Collectors class and the collect method.
+Use parallel stream and also learn when not to.
+Use techniques for debugging and troublshooting streams.

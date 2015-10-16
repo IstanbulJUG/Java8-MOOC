@@ -1,0 +1,1207 @@
+== Purpose
+
+This tutorial introduces the new lambda expressions included in Java Platform Standard Edition 8 (Java SE 8).
+
+== Introduction
+
+Lambda expressions are a new and important feature included in Java SE 8. They provide a clear and concise way to represent one method interface using an expression. Lambda expressions also improve the Collection libraries making it easier to iterate through, filter, and extract data from a Collection. In addition, new concurrency features improve performance in multicore environments.
+
+This Oracle by Example (OBE) provides an introduction to lambda expressions included in Java SE 8. An introduction to anonymous inner functions is provided, followed by a discussion of functional interfaces and the new lambda syntax. Then, examples of common usage patterns before and after lambda expressions are shown.
+
+The next section reviews a common search use case and how Java code can be improved with the inclusion of lambda expressions. In addition, some of the common functional interfaces, Predicate and Function, provided in java.util.function are shown in action.
+
+The OBE finishes up with a review of how the Java collection has been updated with lambda expressions.
+
+The source code for all examples is provided to you.
+
+== Hardware and Software Requirements
+
+The following is a list of hardware and software requirements:
+
+Java Development Kit (JDK 8) early access
+NetBeans 7.4
+Prerequisites
+
+To run the examples, you must have an early access version of JDK 8 and a copy of NetBeans 7.4 or later. Links can be found at the main Lambda site. For your convenience, here are the direct links.
+
+Java Development Kit 8 (JDK8) Early Access
+Recommended: Download the JDK 8 API Docs from the same page.
+NetBeans 7.4 or later. Version 7.4 of NetBeans includes support for JDK 8.
+Note: Builds are provided for all major operating systems. This OBE was developed using Linux Mint 13 (Ubuntu/Debian).
+
+Install JDK8 and NetBeans following the instructions provided with the downloads. Add the bin directories for Java and NetBeans to your PATH.
+
+NOTE: This OBE was last updated December 2013.
+ 
+== Background
+
+=== Anonymous Inner Class
+
+In Java, anonymous inner classes provide a way to implement classes that may occur only once in an application. For example, in a standard Swing or JavaFX application a number of event handlers are required for keyboard and mouse events. Rather than writing a separate event-handling class for each event, you can write something like this.
+
+[source,java]
+----
+16     JButton testButton = new JButton("Test Button");
+17     testButton.addActionListener(new ActionListener(){
+18     @Override public void actionPerformed(ActionEvent ae){
+19         System.out.println("Click Detected by Anon Class");
+20       }
+21     });
+----
+Otherwise, a separate class that implements ActionListener is required for each event. By creating the class in place, where it is needed, the code is a little easier to read. The code is not elegant, because quite a bit of code is required just to define one method.
+
+== Functional Interfaces
+
+The code that defines the ActionListener interface, looks something like this:
+
+[source,java]
+----
+   1 package java.awt.event;
+   2 import java.util.EventListener;
+   3 
+   4 public interface ActionListener extends EventListener {
+   5     
+   6 public void actionPerformed(ActionEvent e);
+   7 
+   8 }
+----
+
+The ActionListener example is an interface with only one method. With Java SE 8, an interface that follows this pattern is known as a "functional interface."
+
+NOTE: This type of interface, was previously known as a Single Abstract Method type (SAM).
+
+Using functional interfaces with anonymous inner classes are a common pattern in Java. In addition to the EventListener classes, interfaces like Runnable and Comparator are used in a similar manner. Therefore, functional interfaces are leveraged for use with lambda expressions.
+
+== Lambda Expression Syntax
+
+Lambda expressions address the bulkiness of anonymous inner classes by converting five lines of code into a single statement. This simple horizontal solution solves the "vertical problem" presented by inner classes.
+
+A lambda expression is composed of three parts.
+
+|===
+|Argument List|	Arrow| Token	Body
+|(int x, int y)	|->|	x + y
+|===
+
+The body can be either a single expression or a statement block. In the expression form, the body is simply evaluated and returned. In the block form, the body is evaluated like a method body and a return statement returns control to the caller of the anonymous method. The break and continue keywords are illegal at the top level, but are permitted within loops. If the body produces a result, every control path must return something or throw an exception.
+
+Take a look at these examples:
+
+[source,java]
+----
+(int x, int y) -> x + y
+
+() -> 42
+
+(String s) -> { System.out.println(s); }
+----
+
+The first expression takes two integer arguments, named x and y, and uses the expression form to return x+y. The second expression takes no arguments and uses the expression form to return an integer 42. The third expression takes a string and uses the block form to print the string to the console, and returns nothing.
+
+With the basics of syntax covered, let's look at some examples.
+
+ 
+== Lambda Examples
+Here are some common use cases using the previously covered examples.
+
+=== Runnable Lambda
+
+Here is how you write a Runnable using lambdas.
+[source,java]
+----
+ 6 public class RunnableTest {
+ 7   public static void main(String[] args) {
+ 8     
+ 9     System.out.println("=== RunnableTest ===");
+10     
+11     // Anonymous Runnable
+12     Runnable r1 = new Runnable(){
+13       
+14       @Override
+15       public void run(){
+16         System.out.println("Hello world one!");
+17       }
+18     };
+19     
+20     // Lambda Runnable
+21     Runnable r2 = () -> System.out.println("Hello world two!");
+22     
+23     // Run em!
+24     r1.run();
+25     r2.run();
+26     
+27   }
+28 }
+----
+In both cases, notice that no parameter is passed and is returned. The Runnable lambda expression, which uses the block format, converts five lines of code into one statement.
+
+=== Comparator Lambda
+
+In Java, the Comparator class is used for sorting collections. In the following example, an ArrayList consisting of Person objects is sorted based on surName. The following are the fields included in the Person class.
+
+----
+ 9 public class Person {
+10   private String givenName;
+11   private String surName;
+12   private int age;
+13   private Gender gender;
+14   private String eMail;
+15   private String phone;
+16   private String address;
+17   
+----
+
+The following code applies a Comparator by using an anonymous inner class and a couple lambda expressions.
+
+[source,java]
+----
+10 public class ComparatorTest {
+11 
+12   public static void main(String[] args) {
+13    
+14     List<Person> personList = Person.createShortList();
+15   
+16     // Sort with Inner Class
+17     Collections.sort(personList, new Comparator<Person>(){
+18       public int compare(Person p1, Person p2){
+19         return p1.getSurName().compareTo(p2.getSurName());
+20       }
+21     });
+22     
+23     System.out.println("=== Sorted Asc SurName ===");
+24     for(Person p:personList){
+25       p.printName();
+26     }
+27     
+28     // Use Lambda instead
+29     
+30     // Print Asc
+31     System.out.println("=== Sorted Asc SurName ===");
+32     Collections.sort(personList, (Person p1, Person p2) -> p1.getSurName().compareTo(p2.getSurName()));
+33 
+34     for(Person p:personList){
+35       p.printName();
+36     }
+37     
+38     // Print Desc
+39     System.out.println("=== Sorted Desc SurName ===");
+40     Collections.sort(personList, (p1,  p2) -> p2.getSurName().compareTo(p1.getSurName()));
+41 
+42     for(Person p:personList){
+43       p.printName();
+44     }
+45     
+46   }
+47 }
+----
+
+Lines 17 - 21 are easily replaced by the lambda expression on line 32. Notice that the first lambda expression declares the parameter type passed to the expression. However, as you can see from the second expression, this is optional. Lambda supports "target typing" which infers the object type from the context in which it is used. Because we are assigning the result to a Comparator defined with a generic, the compiler can infer that the two parameters are of the Person type.
+
+=== Listener Lambda
+
+Finally, let's revisit the ActionListener example.
+
+[source,java]
+----
+13 public class ListenerTest {
+14   public static void main(String[] args) {
+15         
+16     JButton testButton = new JButton("Test Button");
+17     testButton.addActionListener(new ActionListener(){
+18     @Override public void actionPerformed(ActionEvent ae){
+19         System.out.println("Click Detected by Anon Class");
+20       }
+21     });
+22     
+23     testButton.addActionListener(e -> System.out.println("Click Detected by Lambda Listner"));
+24     
+25     // Swing stuff
+26     JFrame frame = new JFrame("Listener Test");
+27     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+28     frame.add(testButton, BorderLayout.CENTER);
+29     frame.pack();
+30     frame.setVisible(true);
+31     
+32   }
+33 }
+----
+
+Notice that the lambda expression is passed as a parameter. Target typing is used in a number of contexts including the following:
+
+Variable declarations
+Assignments
+Return statements
+Array initializers
+Method or constructor arguments
+Lambda expression bodies
+Conditional expressions ?:
+Cast expressions
+ 
+=== Improving Code with Lambda Expressions
+
+This section builds upon the previous examples to show you how lambda expressions can improve your code. Lambdas should provide a means to better support the Don't Repeat Yourself (DRY) principle and make your code simpler and more readable.
+
+==== A Common Query Use Case
+
+A common use case for programs is to search through a collection of data to find items that match a specific criteria. In the excellent "Jump-Starting Lambda" presentation at JavaOne 2012, Stuart Marks and Mike Duigou walk though just such a use case. Given a list of people, various criteria are used to make robo calls (automated phone calls) to matching persons. This tutorial follows that basic premise with slight variations.
+
+In this example, our message needs to get out to three different groups in the United States:
+
+Drivers: Persons over the age of 16
+Draftees: Male persons between the ages of 18 and 25
+Pilots (specifically commercial pilots): Persons between the ages of 23 and 65
+The actual robot that does all this work has not yet arrived at our place of business. Instead of calling, mailing or emailing, a message is printed to the console. The message contains a person's name, age, and information specific to the target medium (for example, email address when emailing or phone number when calling).
+
+==== Person Class
+
+Each person in the test list is defined by using the Person class with the following properties:
+
+[source,java]
+----
+10 public class Person {
+11   private String givenName;
+12   private String surName;
+13   private int age;
+14   private Gender gender;
+15   private String eMail;
+16   private String phone;
+17   private String address;
+18 
+----
+
+The Person class uses a Builder to create new objects. A sample list of people is created with the createShortList method. Here is a short code fragment of that method. Note: All source code for this tutorial is included in a NetBeans project that is linked at the end of this section.
+
+[source,java]
+----
+128   public static List<Person> createShortList(){
+129     List<Person> people = new ArrayList<>();
+130     
+131     people.add(
+132       new Person.Builder()
+133             .givenName("Bob")
+134             .surName("Baker")
+135             .age(21)
+136             .gender(Gender.MALE)
+137             .email("bob.baker@example.com")
+138             .phoneNumber("201-121-4678")
+139             .address("44 4th St, Smallville, KS 12333")
+140             .build() 
+141       );
+142     
+143     people.add(
+144       new Person.Builder()
+145             .givenName("Jane")
+146             .surName("Doe")
+147             .age(25)
+148             .gender(Gender.FEMALE)
+149             .email("jane.doe@example.com")
+150             .phoneNumber("202-123-4678")
+151             .address("33 3rd St, Smallville, KS 12333")
+152             .build() 
+153       );
+154     
+155     people.add(
+156       new Person.Builder()
+157             .givenName("John")
+158             .surName("Doe")
+159             .age(25)
+160             .gender(Gender.MALE)
+161             .email("john.doe@example.com")
+162             .phoneNumber("202-123-4678")
+163             .address("33 3rd St, Smallville, KS 12333")
+164             .build()
+165     );
+166 
+----
+
+=== A First Attempt
+
+With a Person class and search criteria defined, you can write a RoboContact class. One possible solution defines a method for each use case:
+
+[source,java]
+.RoboContactsMethods.java
+----
+   1 package com.example.lambda;
+   2 
+   3 import java.util.List;
+   4 
+   5 /**
+   6  *
+   7  * @author MikeW
+   8  */
+   9 public class RoboContactMethods {
+  10   
+  11   public void callDrivers(List<Person> pl){
+  12     for(Person p:pl){
+  13       if (p.getAge() >= 16){
+  14         roboCall(p);
+  15       }
+  16     }
+  17   }
+  18   
+  19   public void emailDraftees(List<Person> pl){
+  20     for(Person p:pl){
+  21       if (p.getAge() >= 18 && p.getAge() <= 25 && p.getGender() == Gender.MALE){
+  22         roboEmail(p);
+  23       }
+  24     }
+  25   }
+  26   
+  27   public void mailPilots(List<Person> pl){
+  28     for(Person p:pl){
+  29       if (p.getAge() >= 23 && p.getAge() <= 65){
+  30         roboMail(p);
+  31       }
+  32     }
+  33   }
+  34   
+  35   
+  36   public void roboCall(Person p){
+  37     System.out.println("Calling " + p.getGivenName() + " " + p.getSurName() + " age " + p.getAge() + " at " + p.getPhone());
+  38   }
+  39   
+  40   public void roboEmail(Person p){
+  41     System.out.println("EMailing " + p.getGivenName() + " " + p.getSurName() + " age " + p.getAge() + " at " + p.getEmail());
+  42   }
+  43   
+  44   public void roboMail(Person p){
+  45     System.out.println("Mailing " + p.getGivenName() + " " + p.getSurName() + " age " + p.getAge() + " at " + p.getAddress());
+  46   }
+  47 
+  48 }
+----
+
+As you can see from the names (callDrivers, emailDraftees, and mailPilots) the methods describe the kind of behavior that is taking place. The search criteria is clearly conveyed and an appropriate call is made to each robo action. However, this design has some negatives aspects:
+
+The DRY principle is not followed.
+Each method repeats a looping mechanism.
+The selection criteria must be rewritten for each method
+A large number of methods are required to implement each use case.
+The code is inflexible. If the search criteria changed, it would require a number of code changes for an update. Thus, the code is not very maintainable.
+Refactor the Methods
+
+How can the class be fixed? The search criteria is a good place to start. If test conditions are isolated in separate methods, that would be an improvement.
+
+[source,java]
+.RoboContactMethods2.java
+----
+   1 package com.example.lambda;
+   2 
+   3 import java.util.List;
+   4 
+   5 /**
+   6  *
+   7  * @author MikeW
+   8  */
+   9 public class RoboContactMethods2 {
+  10   
+  11   public void callDrivers(List<Person> pl){
+  12     for(Person p:pl){
+  13       if (isDriver(p)){
+  14         roboCall(p);
+  15       }
+  16     }
+  17   }
+  18   
+  19   public void emailDraftees(List<Person> pl){
+  20     for(Person p:pl){
+  21       if (isDraftee(p)){
+  22         roboEmail(p);
+  23       }
+  24     }
+  25   }
+  26   
+  27   public void mailPilots(List<Person> pl){
+  28     for(Person p:pl){
+  29       if (isPilot(p)){
+  30         roboMail(p);
+  31       }
+  32     }
+  33   }
+  34   
+  35   public boolean isDriver(Person p){
+  36     return p.getAge() >= 16;
+  37   }
+  38   
+  39   public boolean isDraftee(Person p){
+  40     return p.getAge() >= 18 && p.getAge() <= 25 && p.getGender() == Gender.MALE;
+  41   }
+  42   
+  43   public boolean isPilot(Person p){
+  44     return p.getAge() >= 23 && p.getAge() <= 65;
+  45   }
+  46   
+  47   public void roboCall(Person p){
+  48     System.out.println("Calling " + p.getGivenName() + " " + p.getSurName() + " age " + p.getAge() + " at " + p.getPhone());
+  49   }
+  50   
+  51   public void roboEmail(Person p){
+  52     System.out.println("EMailing " + p.getGivenName() + " " + p.getSurName() + " age " + p.getAge() + " at " + p.getEmail());
+  53   }
+  54   
+  55   public void roboMail(Person p){
+  56     System.out.println("Mailing " + p.getGivenName() + " " + p.getSurName() + " age " + p.getAge() + " at " + p.getAddress());
+  57   }
+  58 
+  59 }
+----
+
+The search criteria are encapsulated in a method, an improvement over the previous example. The test conditions can be reused and changes flow back throughout the class. However there is still a lot of repeated code and a separate method is still required for each use case. Is there a better way to pass the search criteria to the methods?
+
+== Anonymous Classes
+
+Before lambda expressions, anonymous inner classes were an option. For example, an interface (MyTest.java) written with one test method that returns a boolean (a functional interface) is a possible solution. The search criteria could be passed when the method is called. The interface looks like this:
+
+[source,java]
+----
+6 public interface MyTest<T> {
+7   public boolean test(T t);
+8 }
+----
+
+The updated robot class looks like this:
+
+[source,java]
+.RoboContactsAnon.java
+----
+ 9 public class RoboContactAnon {
+10 
+11   public void phoneContacts(List<Person> pl, MyTest<Person> aTest){
+12     for(Person p:pl){
+13       if (aTest.test(p)){
+14         roboCall(p);
+15       }
+16     }
+17   }
+18 
+19   public void emailContacts(List<Person> pl, MyTest<Person> aTest){
+20     for(Person p:pl){
+21       if (aTest.test(p)){
+22         roboEmail(p);
+23       }
+24     }
+25   }
+26 
+27   public void mailContacts(List<Person> pl, MyTest<Person> aTest){
+28     for(Person p:pl){
+29       if (aTest.test(p)){
+30         roboMail(p);
+31       }
+32     }
+33   }  
+34   
+35   public void roboCall(Person p){
+36     System.out.println("Calling " + p.getGivenName() + " " + p.getSurName() + " age " + p.getAge() + " at " + p.getPhone());
+37   }
+38   
+39   public void roboEmail(Person p){
+40     System.out.println("EMailing " + p.getGivenName() + " " + p.getSurName() + " age " + p.getAge() + " at " + p.getEmail());
+41   }
+42   
+43   public void roboMail(Person p){
+44     System.out.println("Mailing " + p.getGivenName() + " " + p.getSurName() + " age " + p.getAge() + " at " + p.getAddress());
+45   }
+46   
+47 }
+----
+That is definitely another improvement, because only three methods are needed to perform robotic operations. However, there is a slight problem with ugliness when the methods are called. Check out the test class used for this class:
+
+[source,java]
+.RoboCallTest03.java
+----
+   1 package com.example.lambda;
+   2 
+   3 import java.util.List;
+   4 
+   5 /**
+   6  * @author MikeW
+   7  */
+   8 public class RoboCallTest03 {
+   9 
+  10   public static void main(String[] args) {
+  11     
+  12     List<Person> pl = Person.createShortList();
+  13     RoboContactAnon robo = new RoboContactAnon();
+  14     
+  15     System.out.println("\n==== Test 03 ====");
+  16     System.out.println("\n=== Calling all Drivers ===");
+  17     robo.phoneContacts(pl, 
+  18         new MyTest<Person>(){
+  19           @Override
+  20           public boolean test(Person p){
+  21             return p.getAge() >=16;
+  22           }
+  23         }
+  24     );
+  25     
+  26     System.out.println("\n=== Emailing all Draftees ===");
+  27     robo.emailContacts(pl, 
+  28         new MyTest<Person>(){
+  29           @Override
+  30           public boolean test(Person p){
+  31             return p.getAge() >= 18 && p.getAge() <= 25 && p.getGender() == Gender.MALE;
+  32           }
+  33         }
+  34     );
+  35     
+  36     
+  37     System.out.println("\n=== Mail all Pilots ===");
+  38     robo.mailContacts(pl, 
+  39         new MyTest<Person>(){
+  40           @Override
+  41           public boolean test(Person p){
+  42             return p.getAge() >= 23 && p.getAge() <= 65;
+  43           }
+  44         }
+  45     );
+  46     
+  47     
+  48   }
+  49 }
+----
+This is a great example of the "vertical" problem in practice. This code is a little difficult to read. In addition, we have to write custom search criteria for each use case.
+
+=== Lambda Expressions Get it Just Right
+
+Lambda expressions solve all the problems encountered so far. But first a little housekeeping.
+
+java.util.function
+
+In the previous example, the MyTest functional interface passed anonymous classes to methods. However, writing that interface was not necessary. Java SE 8 provides the java.util.function package with a number of standard functional interfaces. In this case, the Predicate interface meets our needs.
+
+[source,java]
+----
+3 public interface Predicate<T> {
+4   public boolean test(T t);
+5 }
+----
+
+The test method takes a generic class and returns a boolean result. This is just what is needed to make selections. Here is the final version of the robot class.
+
+[source,java]
+.RoboContactsLambda.java
+----
+   1 package com.example.lambda;
+   2 
+   3 import java.util.List;
+   4 import java.util.function.Predicate;
+   5 
+   6 /**
+   7  *
+   8  * @author MikeW
+   9  */
+  10 public class RoboContactLambda {
+  11   public void phoneContacts(List<Person> pl, Predicate<Person> pred){
+  12     for(Person p:pl){
+  13       if (pred.test(p)){
+  14         roboCall(p);
+  15       }
+  16     }
+  17   }
+  18 
+  19   public void emailContacts(List<Person> pl, Predicate<Person> pred){
+  20     for(Person p:pl){
+  21       if (pred.test(p)){
+  22         roboEmail(p);
+  23       }
+  24     }
+  25   }
+  26 
+  27   public void mailContacts(List<Person> pl, Predicate<Person> pred){
+  28     for(Person p:pl){
+  29       if (pred.test(p)){
+  30         roboMail(p);
+  31       }
+  32     }
+  33   }  
+  34   
+  35   public void roboCall(Person p){
+  36     System.out.println("Calling " + p.getGivenName() + " " + p.getSurName() + " age " + p.getAge() + " at " + p.getPhone());
+  37   }
+  38   
+  39   public void roboEmail(Person p){
+  40     System.out.println("EMailing " + p.getGivenName() + " " + p.getSurName() + " age " + p.getAge() + " at " + p.getEmail());
+  41   }
+  42   
+  43   public void roboMail(Person p){
+  44     System.out.println("Mailing " + p.getGivenName() + " " + p.getSurName() + " age " + p.getAge() + " at " + p.getAddress());
+  45   }
+  46 
+  47 }
+----
+With this approach only three methods are needed, one for each contact method. The lambda expression passed to the method selects the Person instances that meet the test conditions.
+
+Vertical Problem Solved
+
+Lambda expressions solve the vertical problem and allow the easy reuse of any expression. Take a look at the new test class updated for lambda expressions.
+
+[source,java]
+.RoboCallTest04.java
+----
+   1 package com.example.lambda;
+   2 
+   3 import java.util.List;
+   4 import java.util.function.Predicate;
+   5 
+   6 /**
+   7  *
+   8  * @author MikeW
+   9  */
+  10 public class RoboCallTest04 {
+  11   
+  12   public static void main(String[] args){ 
+  13 
+  14     List<Person> pl = Person.createShortList();
+  15     RoboContactLambda robo = new RoboContactLambda();
+  16     
+  17     // Predicates
+  18     Predicate<Person> allDrivers = p -> p.getAge() >= 16;
+  19     Predicate<Person> allDraftees = p -> p.getAge() >= 18 && p.getAge() <= 25 && p.getGender() == Gender.MALE;
+  20     Predicate<Person> allPilots = p -> p.getAge() >= 23 && p.getAge() <= 65;
+  21     
+  22     System.out.println("\n==== Test 04 ====");
+  23     System.out.println("\n=== Calling all Drivers ===");
+  24     robo.phoneContacts(pl, allDrivers);
+  25     
+  26     System.out.println("\n=== Emailing all Draftees ===");
+  27     robo.emailContacts(pl, allDraftees);
+  28     
+  29     System.out.println("\n=== Mail all Pilots ===");
+  30     robo.mailContacts(pl, allPilots);
+  31     
+  32     // Mix and match becomes easy
+  33     System.out.println("\n=== Mail all Draftees ===");
+  34     robo.mailContacts(pl, allDraftees);  
+  35     
+  36     System.out.println("\n=== Call all Pilots ===");
+  37     robo.phoneContacts(pl, allPilots);    
+  38     
+  39   }
+  40 }
+----
+
+Notice that a Predicate is set up for each group: allDrivers, allDraftees, and allPilots. You can pass any of these Predicate interfaces to the contact methods. The code is compact and easy to read, and it is not repetitive.
+
+The java.util.function Package
+The java.util.function Package
+
+Of course, Predicate is not the only functional interface provided with Java SE 8. A number of standard interfaces are designed as a starter set for developers.
+
+. Predicate: A property of the object passed as argument
+. Consumer: An action to be performed with the object passed as argument
+. Function: Transform a T to a U
+. Supplier: Provide an instance of a T (such as a factory)
+. UnaryOperator: A unary operator from T -> T
+. BinaryOperator: A binary operator from (T, T) -> T
+. In addition, many of these interfaces also have primitive versions. This should give you a great starting point for your lambda expressions.
+
+== Eastern Style Names and Method References
+
+When working on the previous example, I decided it would be nice to have a flexible printing system for the Person class. One feature requirement is to display names in both a western style and an eastern style. In the West, names are displayed with the given name first and the surname second. In many eastern cultures, names are displayed with the surname first and the given name second.
+
+=== An Old Style Example
+
+Here is an example of how to implement a Person printing class without lambda support.
+
+[source,java]
+.Person.java
+----
+128   public void printWesternName(){
+129   
+130     System.out.println("\nName: " + this.getGivenName() + " " + this.getSurName() + "\n" +
+131              "Age: " + this.getAge() + "  " + "Gender: " + this.getGender() + "\n" +
+132              "EMail: " + this.getEmail() + "\n" + 
+133              "Phone: " + this.getPhone() + "\n" +
+134              "Address: " + this.getAddress());
+135   }
+136     
+137     
+138     
+139   public void printEasternName(){
+140       
+141     System.out.println("\nName: " + this.getSurName() + " " + this.getGivenName() + "\n" +
+142              "Age: " + this.getAge() + "  " + "Gender: " + this.getGender() + "\n" +
+143              "EMail: " + this.getEmail() + "\n" + 
+144              "Phone: " + this.getPhone() + "\n" +
+145              "Address: " + this.getAddress());
+146   }
+----
+
+A method exists for each style that prints out a person.
+
+== The Function Interface
+
+The Function interface is useful for this problem. It has only one method apply with the following signature:
+
+[source,java]
+----
+    public R apply(T t){ }
+----
+
+It takes a generic class T and returns a generic class R. For this example, pass the Person class and return a String. A more flexible print method for person could be written like this:
+
+[source,java]
+.Person.java
+----
+123   public String printCustom(Function <Person, String> f){
+124       return f.apply(this);
+125   }
+126   
+----
+
+That is quite a bit simpler. A Function is passed to the method and a string returned. The apply method processes a lambda expression which determines what Person information is returned.
+
+How are the Functions defined? Here is the test code that calls the previous method.
+
+[source,java]
+.NameTestNew.java
+----
+ 9 public class NameTestNew {
+10 
+11   public static void main(String[] args) {
+12     
+13     System.out.println("\n==== NameTestNew02 ===");
+14     
+15     List<Person> list1 = Person.createShortList();
+16     
+17     // Print Custom First Name and e-mail
+18     System.out.println("===Custom List===");
+19     for (Person person:list1){
+20         System.out.println(
+21             person.printCustom(p -> "Name: " + p.getGivenName() + " EMail: " + p.getEmail())
+22         );
+23     }
+24 
+25     
+26     // Define Western and Eastern Lambdas
+27     
+28     Function<Person, String> westernStyle = p -> {
+29       return "\nName: " + p.getGivenName() + " " + p.getSurName() + "\n" +
+30              "Age: " + p.getAge() + "  " + "Gender: " + p.getGender() + "\n" +
+31              "EMail: " + p.getEmail() + "\n" + 
+32              "Phone: " + p.getPhone() + "\n" +
+33              "Address: " + p.getAddress();
+34     };
+35     
+36     Function<Person, String> easternStyle =  p -> "\nName: " + p.getSurName() + " " 
+37             + p.getGivenName() + "\n" + "Age: " + p.getAge() + "  " + 
+38             "Gender: " + p.getGender() + "\n" +
+39             "EMail: " + p.getEmail() + "\n" + 
+40             "Phone: " + p.getPhone() + "\n" +
+41             "Address: " + p.getAddress();   
+42     
+43     // Print Western List
+44     System.out.println("\n===Western List===");
+45     for (Person person:list1){
+46         System.out.println(
+47             person.printCustom(westernStyle)
+48         );
+49     }
+50 
+51     // Print Eastern List
+52     System.out.println("\n===Eastern List===");
+53     for (Person person:list1){
+54         System.out.println(
+55             person.printCustom(easternStyle)
+56         );
+57     }
+58     
+59     
+60   }
+61 }
+----
+
+The first loop just prints given name and the email address. But any valid expression could be passed to the printCustom method. Eastern and western print styles are defined with lambda expressions and stored in a variable. The variables are then passed to the final two loops. The lambda expressions could very easily be incorporated into a Map to make their reuse much easier. The lambda expression provides a great deal of flexibility.
+
+==== Sample Output
+
+Here is some sample output from the program.
+
+[source,java]
+----
+==== NameTestNew02 ===
+===Custom List===
+Name: Bob EMail: bob.baker@example.com
+Name: Jane EMail: jane.doe@example.com
+Name: John EMail: john.doe@example.com
+Name: James EMail: james.johnson@example.com
+Name: Joe EMail: joebob.bailey@example.com
+Name: Phil EMail: phil.smith@examp;e.com
+Name: Betty EMail: betty.jones@example.com
+
+===Western List===
+
+Name: Bob Baker
+Age: 21  Gender: MALE
+EMail: bob.baker@example.com
+Phone: 201-121-4678
+Address: 44 4th St, Smallville, KS 12333
+
+Name: Jane Doe
+Age: 25  Gender: FEMALE
+EMail: jane.doe@example.com
+Phone: 202-123-4678
+Address: 33 3rd St, Smallville, KS 12333
+
+Name: John Doe
+Age: 25  Gender: MALE
+EMail: john.doe@example.com
+Phone: 202-123-4678
+Address: 33 3rd St, Smallville, KS 12333
+
+Name: James Johnson
+Age: 45  Gender: MALE
+EMail: james.johnson@example.com
+Phone: 333-456-1233
+Address: 201 2nd St, New York, NY 12111
+
+Name: Joe Bailey
+Age: 67  Gender: MALE
+EMail: joebob.bailey@example.com
+Phone: 112-111-1111
+Address: 111 1st St, Town, CA 11111
+
+Name: Phil Smith
+Age: 55  Gender: MALE
+EMail: phil.smith@examp;e.com
+Phone: 222-33-1234
+Address: 22 2nd St, New Park, CO 222333
+
+Name: Betty Jones
+Age: 85  Gender: FEMALE
+EMail: betty.jones@example.com
+Phone: 211-33-1234
+Address: 22 4th St, New Park, CO 222333
+
+===Eastern List===
+
+Name: Baker Bob
+Age: 21  Gender: MALE
+EMail: bob.baker@example.com
+Phone: 201-121-4678
+Address: 44 4th St, Smallville, KS 12333
+
+Name: Doe Jane
+Age: 25  Gender: FEMALE
+EMail: jane.doe@example.com
+Phone: 202-123-4678
+Address: 33 3rd St, Smallville, KS 12333
+
+Name: Doe John
+Age: 25  Gender: MALE
+EMail: john.doe@example.com
+Phone: 202-123-4678
+Address: 33 3rd St, Smallville, KS 12333
+
+Name: Johnson James
+Age: 45  Gender: MALE
+EMail: james.johnson@example.com
+Phone: 333-456-1233
+Address: 201 2nd St, New York, NY 12111
+
+Name: Bailey Joe
+Age: 67  Gender: MALE
+EMail: joebob.bailey@example.com
+Phone: 112-111-1111
+Address: 111 1st St, Town, CA 11111
+
+Name: Smith Phil
+Age: 55  Gender: MALE
+EMail: phil.smith@examp;e.com
+Phone: 222-33-1234
+Address: 22 2nd St, New Park, CO 222333
+
+Name: Jones Betty
+Age: 85  Gender: FEMALE
+EMail: betty.jones@example.com
+Phone: 211-33-1234
+Address: 22 4th St, New Park, CO 222333
+----
+
+ 
+=== Lambda Expressions and Collections
+The previous section introduced the Function interface and finished up examples of basic lambda expression syntax. This section reviews how lambda expressions improve the Collection classes.
+
+==== Lambda Expressions and Collections
+
+In the examples created so far, the collections classes were used quite a bit. However, a number of new lambda expression features change the way collections are used. This section introduces a few of these new features.
+
+==== Class Additions
+
+The drivers, pilots, and draftees search criteria have been encapsulated in the SearchCriteria class.
+
+[source,java]
+.SearchCriteria.java
+----
+ 1 package com.example.lambda;
+ 2 
+ 3 import java.util.HashMap;
+ 4 import java.util.Map;
+ 5 import java.util.function.Predicate;
+ 6 
+ 7 /**
+ 8  *
+ 9  * @author MikeW
+10  */
+11 public class SearchCriteria {
+12 
+13   private final Map<String, Predicate<Person>> searchMap = new HashMap<>();
+14 
+15   private SearchCriteria() {
+16     super();
+17     initSearchMap();
+18   }
+19 
+20   private void initSearchMap() {
+21     Predicate<Person> allDrivers = p -> p.getAge() >= 16;
+22     Predicate<Person> allDraftees = p -> p.getAge() >= 18 && p.getAge() <= 25 && p.getGender() == Gender.MALE;
+23     Predicate<Person> allPilots = p -> p.getAge() >= 23 && p.getAge() <= 65;
+24 
+25     searchMap.put("allDrivers", allDrivers);
+26     searchMap.put("allDraftees", allDraftees);
+27     searchMap.put("allPilots", allPilots);
+28 
+29   }
+30 
+31   public Predicate<Person> getCriteria(String PredicateName) {
+32     Predicate<Person> target;
+33 
+34     target = searchMap.get(PredicateName);
+35 
+36     if (target == null) {
+37 
+38       System.out.println("Search Criteria not found... ");
+39       System.exit(1);
+40     
+41     }
+42       
+43     return target;
+44 
+45   }
+46 
+47   public static SearchCriteria getInstance() {
+48     return new SearchCriteria();
+49   }
+50 }
+----
+
+The Predicate based search criteria are stored in this class and available for our test methods.
+
+=== Looping
+
+The first feature to look at is the new forEach method available to any collection class. Here are a couple of examples that print out a Person list.
+
+[source,java]
+.Test01ForEach.java
+----
+11 public class Test01ForEach {
+12   
+13   public static void main(String[] args) {
+14     
+15     List<Person> pl = Person.createShortList();
+16     
+17     System.out.println("\n=== Western Phone List ===");
+18     pl.forEach( p -> p.printWesternName() );
+19     
+20     System.out.println("\n=== Eastern Phone List ===");
+21     pl.forEach(Person::printEasternName);
+22     
+23     System.out.println("\n=== Custom Phone List ===");
+24     pl.forEach(p -> { System.out.println(p.printCustom(r -> "Name: " + r.getGivenName() + " EMail: " + r.getEmail())); });
+25     
+26   }
+27 
+28 }
+----
+
+The first example shows a standard lambda expression which calls the printWesternName method to print out each person in the list. The second example demonstrates a method reference. In a case where a method already exists to perform an operation on the class, this syntax can be used instead of the normal lambda expression syntax. Finally, the last example shows how the printCustom method can also be used in this situation. Notice the slight variation in variable names when one lambda expression is included in another.
+
+You can iterate through any collection this way. The basic structure is similar to the enhanced for loop. However, including an iteration mechanism within the class provides a number of benefits.
+
+=== Chaining and Filters
+
+In addition to looping through the contents of a collection, you can chain methods together. The first method to look at is filter which takes a Predicate interface as a parameter.
+
+The following example loops though a List after first filtering the results.
+
+[source,java]
+.Test02Filter.java
+----
+ 9 public class Test02Filter {
+10   
+11   public static void main(String[] args) {
+12 
+13     List<Person> pl = Person.createShortList();
+14     
+15     SearchCriteria search = SearchCriteria.getInstance();
+16     
+17     System.out.println("\n=== Western Pilot Phone List ===");
+18 
+19     pl.stream().filter(search.getCriteria("allPilots"))
+20       .forEach(Person::printWesternName);
+21     
+22    
+23     System.out.println("\n=== Eastern Draftee Phone List ===");
+24 
+25     pl.stream().filter(search.getCriteria("allDraftees"))
+26       .forEach(Person::printEasternName);
+27     
+28   }
+29 }
+----
+The first and last loops demonstrate how the List is filtered based on the search criteria. The output from the last loop looks like following:
+
+[source,xml]
+----
+=== Eastern Draftee Phone List ===
+
+Name: Baker Bob
+Age: 21  Gender: MALE
+EMail: bob.baker@example.com
+Phone: 201-121-4678
+Address: 44 4th St, Smallville, KS 12333
+
+Name: Doe John
+Age: 25  Gender: MALE
+EMail: john.doe@example.com
+Phone: 202-123-4678
+Address: 33 3rd St, Smallville, KS 12333
+Getting Lazy
+----
+
+These features are useful, but why add them to the collections classes when there is already a perfectly good for loop? By moving iteration features into a library, it allows the developers of Java to do more code optimizations. To explain further, a couple of terms need definitions.
+
+Laziness: In programming, laziness refers to processing only the objects that you want to process when you need to process them. In the previous example, the last loop is "lazy" because it loops only through the two Person objects left after the List is filtered. The code should be more efficient because the final processing step occurs only on the selected objects.
+Eagerness: Code that performs operations on every object in a list is considered "eager". For example, an enhanced for loop that iterates through an entire list to process two objects, is considered a more "eager" approach.
+By making looping part of the collections library, code can be better optimized for "lazy" operations when the opportunity arises. When a more eager approach makes sense (for example, computing a sum or an average), eager operations are still applied. This approach is a much more efficient and flexible than always using eager operations.
+
+==== The stream Method
+
+In the previous code example, notice that the stream method is called before filtering and looping begin. This method takes a Collection as input and returns a java.util.stream.Stream interface as the output. A Stream represents a sequence of elements on which various methods can be chained. By default, once elements are consumed they are no longer available from the stream. Therefore, a chain of operations can occur only once on a particular Stream. In addition, a Stream can be serial(default) or parallel depending on the method called. An example of a parallel stream is included at the end of this section.
+
+==== Mutation and Results
+
+As previously mentioned, a Stream is disposed of after its use. Therefore, the elements in a collection cannot be changed or mutated with a Stream. However, what if you want to keep elements returned from your chained operations? You can save them to a new collection. The following code shows how to do just that.
+
+[source,java]
+.Test03toList.java
+----
+10 public class Test03toList {
+11   
+12   public static void main(String[] args) {
+13     
+14     List<Person> pl = Person.createShortList();
+15     
+16     SearchCriteria search = SearchCriteria.getInstance();
+17     
+18     // Make a new list after filtering.
+19     List<Person> pilotList = pl
+20             .stream()
+21             .filter(search.getCriteria("allPilots"))
+22             .collect(Collectors.toList());
+23     
+24     System.out.println("\n=== Western Pilot Phone List ===");
+25     pilotList.forEach(Person::printWesternName);
+26 
+27   }
+28 
+29 }
+----
+
+The collect method is called with one parameter, the Collectors class. The Collectors class is able to return a List or Set based on the results of the stream. The example shows how the result of the stream is assigned to a new List which is iterated over.
+
+Calculating with map
+
+The map method is commonly used with filter. The method takes a property from a class and does something with it. The following example demonstrates this by performing calculations based on age.
+
+
+.Test04Map.java
+[source,java]
+----
+10 public class Test04Map {
+11 
+12   public static void main(String[] args) {
+13     List<Person> pl = Person.createShortList();
+14     
+15     SearchCriteria search = SearchCriteria.getInstance();
+16     
+17     // Calc average age of pilots old style
+18     System.out.println("== Calc Old Style ==");
+19     int sum = 0;
+20     int count = 0;
+21     
+22     for (Person p:pl){
+23       if (p.getAge() >= 23 && p.getAge() <= 65 ){
+24         sum = sum + p.getAge();
+25         count++;
+26       }
+27     }
+28     
+29     long average = sum / count;
+30     System.out.println("Total Ages: " + sum);
+31     System.out.println("Average Age: " + average);
+32     
+33     
+34     // Get sum of ages
+35     System.out.println("\n== Calc New Style ==");
+36     long totalAge = pl
+37             .stream()
+38             .filter(search.getCriteria("allPilots"))
+39             .mapToInt(p -> p.getAge())
+40             .sum();
+41 
+42     // Get average of ages
+43     OptionalDouble averageAge = pl
+44             .parallelStream()
+45             .filter(search.getCriteria("allPilots"))
+46             .mapToDouble(p -> p.getAge())
+47             .average();
+48 
+49     System.out.println("Total Ages: " + totalAge);
+50     System.out.println("Average Age: " + averageAge.getAsDouble());    
+51     
+52   }
+53   
+54 }
+----
+
+And the output from the class is:
+
+[source, xml]
+----
+== Calc Old Style
+Total Ages: 150
+Average Age: 37
+
+== Calc New Style
+Total Ages: 150
+Average Age: 37.5
+----
+
+The program calculates the average age of pilots in our list. The first loop demonstrates the old style of calculating the number by using a for loop. The second loop uses the map method to get the age of each person in a serial stream. Notice that totalAge is a long. The map method returns an IntSteam object, which contains a sum method that returns a long.
+
+NOTE: To compute the average the second time, calculating the sum of ages is unnecessary. However, it is instructive to show an example with the sum method.
+
+The last loop computes the average age from the stream. Notice that the parallelStream method is used to get a parallel stream so that the values can be computed concurrently. The return type is a bit different here as well.
+
+ 
+== Summary
+
+In this tutorial, you learned how to use:
+
+Anonymous inner classes in Java.
+Lambda expressions to replace anonymous inner classes in Java SE 8.
+The correct syntax for lambda expressions.
+A Predicate interface to perform searches on a list.
+A Function interface to process an object and produce a different type of object.
+New features added to Collections in Java SE 8 that support lambda expressions.
+Resources
+
+For further information on Java SE 8 and lambda expressions, see the following:
+
+Java 8
+Project Lambda
+State of the Lambda
+State of the Lambda Collections
+Jump-Starting Lambda JavaOne 2012 (You Tube)
+To learn more about Java and related topics check out the Oracle Learning Library.

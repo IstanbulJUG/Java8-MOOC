@@ -1,0 +1,9 @@
+= Lesson 1: Lambda Expressions
+
+This lesson covers the new lambda expressions feature added to Java SE 8:
+
+. Why lambda expressions are needed in Java.
+. Why this feature was added to Java after twenty years.
+. The syntax of lambda expressions.
+. How to use lambda expressions and the rules that govern their use.
+. Examples of classes and methods that use lambda expressions like the new removeIf and replaceAll methods in the Collections API

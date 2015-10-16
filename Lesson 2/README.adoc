@@ -1,0 +1,11 @@
+= Lesson 2: Introduction to the Streams API
+
+In lesson 2 you will learn how to use the new Streams API to apply functional programming techniques in Java. You will learn to:
+
+*   Use functional programming concepts.
+*   Define streams and stream pipelines in Java.
+*   Create object streams and primitive streams.
+*   Create streams using Java classes.
+*   Use intermediate operations in a stream pipeline.
+*   Use terminal operations in a stream pipeline.
+*   Use the ``Optional`` class to handle null values.
