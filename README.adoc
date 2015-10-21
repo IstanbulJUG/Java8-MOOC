@@ -1,3 +1,6 @@
 === Content of the Functional Programming in Java with Lambdas and Streams Open Online Course
 
 All JDK 8 MOOC videos: https://www.youtube.com/playlist?list=PLmZusCzyp9mVGG2TjtzTxTBQhMarIV1Dm[Youtube Play List]
+
+.the content directories
+image::images/route.png[]
